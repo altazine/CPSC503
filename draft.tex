@@ -1,0 +1,400 @@
+% ================================================================
+% Use the following if all authors are from the SAME institution
+% ================================================================
+\documentclass[accepted,single]{gipaper}
+
+% use Times fonts
+\usepackage{times}
+% make sure English hyphenation rules, etc. loaded
+\usepackage[english]{babel}
+% permits inclusion of PNG, JPG, and PDF files under pdflatex
+\usepackage{graphics}
+% other packages
+\usepackage{epsfig}
+\usepackage{newalg}
+\usepackage{floatflt}
+\usepackage{array,amsmath,amssymb}
+
+% a more flexible replacement for "verbatim" for typesetting pseudocode
+\usepackage{alltt}
+% gives automatic table of contents, permits setting PDF
+% attributes of document.   Set page size in pdftex.cfg file;
+% the "letterpaper" option to hyperref is unreliable...
+\usepackage[
+    pdftitle = "{Final Project Report}",
+    pdfauthor = "{Your Name}"
+]{hyperref}
+
+% ================================================================
+
+\title{Final Project Report \\
+Smoke simulation in box-splines spaces\\
+CPSC 503}
+
+\newauthor{wd}{Estelle Altazin}{}
+
+\affiliation{Department of Computer Science \\University of Calgary
+\\\tt{ealtazin@cpsc.ucalgary.ca}}
+
+% ================================================================
+% Use the following if more than one author
+% ================================================================
+%
+% \title{Final Project Report}
+%
+% \newauthor{wd}{Author One}{}
+% \newauthor{se}{Someone Else}{}
+% \newauthor{ya}{Yet Another}{}
+% \newauthor{fa}{Fourth Author}{}
+%
+% \affiliation{Department of Computer Science \\University of Calgary
+% \\\small{\{author1,author2,author2,author4\}@cpsc.ucalgary.ca} } }
+%
+% ================================================================
+% The rest of the document follows.
+% ================================================================
+
+\abstract{Your text here...}
+
+\begin{document}
+\begin{keywords}
+Your text here...
+\end{keywords}
+
+
+%###################################################################@@@@@######
+\section{Introduction}
+
+%==============================================================================
+\subsection{Goal}
+
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\subsubsection{What did we try to do?}
+
+The modeling and simulation of smoke is challenging and allows us to apprehend various mathematical methods specific to natural phenomenas or fluids simulation. The main goal of this project was to understand and implement all these methods in order to model and visualize smoke. This work was supposed to be done on both Cartesian and body-centered cubic (BCC) grids, so as to compare the results. The result is expected to be better on BCC grids.
+
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\subsubsection{Who would benefit?}
+
+computer graphics community... ???
+
+%==============================================================================
+\subsection{Previous Work}
+
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\subsubsection{What related work have other people done?}
+Fedkiw et al. \cite{Fedkiw:2001} have worked on Cartesian grids and obtained good results of smoke simulation. They design a model for smoke and gases, using numerical methods that are both fast and efficient. Solving the incompressible Euler equations to compute smoke's velocity, they then introduce a vorticity confinement term to model rolling features in order to make the smoke more realistic. Their model uses a finite difference approximation for the divergence and Laplacian operators with the goal of making the solution accurate at the grid points.
+Alim \cite{alim:ms} worked on smoke simulation and describe the mathematical methods and different experiments in his master thesis.
+
+For the BCC part, we can rely on the work of Theußl et al. \cite{TheuBl:2001} that clearly describes BCC grids and their assets in terms of accuracy and efficiency in computer graphics simulations. They explain how to construct and implement the BCC grids in the context of scalar date approximation and visualization.
+
+Unser's work \cite{Unser:2000} provides us a general description of shift-invariant spaces, while Entezari et al. \cite{Entezari:2008} work more specifically on interpolation on BCC grids.
+Finally, Alim \cite{alim:phd} introduced data processing techniques on BCC grids, implementing divergence and the Poisson equation, ingredients that are essential for a numerical solution of the Euler equations.
+
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\subsubsection{When do previous approaches fail/succeed?}
+
+????
+
+%==============================================================================
+\subsection{Approach}
+
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\subsubsection{What approach did we try?}
+
+Our approach was based on five main steps for both Cartesian or BCC grids, implemented in Matlab. The first three steps concern solving the incompressible Euler equations of fluid flow to model smoke's velocity.  We then need to be able to interpolate the values of a grid at any given point different than a gridpoint. This is an essential step to implement advection then. We first thing that we could use the work of another student who had implemented both linear and cubic interpolation on both Cartesian and BCC grids. We will see later why we finally cannot use is work.
+
+The second step would be to implement advection so that our smoke particules follows the velocity field they are exposed to. This velocity field is defined by our force model, which will be described later in this part.
+
+Finally, we need to make sure that the smoke's velocity is a divergence-free field to satisfy the incompressible Euler equations. We solve the Poisson equation with Neumann boudary condition using a projection method. 
+
+After soving the Euler equations of fluid flow, we can start to make a simulation : we need a grid, a source of smoke and forces to create a velocity field. At each time step, we will solve the Euler equations and update the velocity fields with the forces present.
+
+The last part is rendering. We will use Matlab built-in function to render slices of the grid in 2D.
+
+
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\subsubsection{Under what circumstances do we think it should work well?}
+
+cubic interpolation
+RK4/Euler integration for advection
+grid between 32 and 128 to limit computational time 
+
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\subsubsection{Why do we think it should work well under those circumstances?}
+
+cubic interpolation more accurate than linear
+RK4 more accurate but longer than Euler
+
+
+%###################################################################@@@@@######
+\section{Methodology}
+
+%==============================================================================
+\subsection{What pieces had to be implemented to execute my approach?}
+
+First, we needed to implement the resolution of Euler equation of the fluid flow. To do this, we first of all need to understand how to use the code already existing for cubic interpolation. Therefore, we need to test it before using it during the advection part.
+Then, we need to implement the advection of a grid given a velocity field, that is to say to implement a way to determine, for each gridpoint, where it was $dt$ ago. We need to implement an integration scheme and we could use Euler integration or the Runge-Kutta method for example.
+The last step in solving the fluid flow equations is to implement a Poisson solver. We will seek guidance from the work of Alim \cite{alim:ms} to solve the Poisson equation in 3D.
+
+Next, we need to implement a proper simulation, and thus we need to define a force model, as the one in the paper of Fedkiw et al. \cite{Fedkiw:2001}. We will define different parameters in order to run different simulation easily and quickly.
+
+The last step of rendering will not need much implementing work since we will use Matlab's function.
+
+%==============================================================================
+% subsection{For each piece ... }
+%==============================================================================
+
+%==============================================================================
+\subsection{Interpolation}
+
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+The main part about interpolation was to understand the existing code and to test it. We were working with cubic interpolation, so, when the number of the sample size double, the error should be divided by $2^4 = 16$.
+We use a very simple test to check this property : we define a function using a product of sinus : $$f(x,y,z) = sin(2\pi m x) * sin(2\pi n y) * sin(2\pi p z)$$
+The parameters $m$, $n$ and $p$ could be changed to make different tests.
+We then generate a huge number $N$ of random points in the grid, compute the interpolation on these points and then evaluate the error by computing the vaue of $f$ in each of these $N$ points.
+
+The first test was carried out with grids of 32, 64, 128 points and so with spacing of $\cfrac{1}{31}$, $\cfrac{1}{63}$, $\cfrac{1}{127}$. The results were really unexpected and poor :
+\begin{center}
+\begin{tabular}{|c|c|c|c|}
+  \hline
+  spacing & error & ratio & time \\
+  \hline
+  $\cfrac{1}{31}$ & 0.1038 & 1.0117 &1.773\\[0.2cm] 
+  $\cfrac{1}{63}$ & 0.1026 & 1.5498 &\\[0.2cm]
+  $\cfrac{1}{127}$ & 0.0662 & 1.8807 &\\[0.2cm]
+  $\cfrac{1}{255}$ & 0.0352 &  &\\[0.2cm]
+  \hline
+\end{tabular}
+\end{center}
+The ratio is the one between a grid and the grid with the double number of points. It is expected to approach 16. We see clearly here that the function does not give good results. 
+
+We spent a very large amout of time going through the code and trying to understand what was wrong with the implementation of the cubic interpolation and did not really succeed in it. We finally figure out that the function was only working with ``even'' spacing :
+\begin{center}
+\begin{tabular}{|c|c|c|c|}
+  \hline
+  spacing & error & ratio & time\\
+  \hline
+  $\cfrac{1}{32}$ & 0.0199 & 30.753 &0\\[0.2cm] 
+  $\cfrac{1}{64}$ & 6.471e-4 & 19.966 &\\[0.2cm]
+  $\cfrac{1}{128}$ & 3.241e-5 & 16.965 &\\[0.2cm]
+  $\cfrac{1}{256}$ & 1.91e-6 & & \\[0.2cm]
+  \hline
+\end{tabular}
+\end{center}
+The ratios are approaching 16 much more clearly. We did not fine an explanation for these results, and decided to move on with grids with an ``even'' spacing.
+\subsubsection{Were there several possible implementations?}
+
+Your text here...
+
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\subsubsection{If there were several possibilities,
+what were the advantages/disadvantages of each? }
+
+Your text here...
+
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\subsubsection{Which implementation(s) did we do? Why?}
+
+Your text here...
+
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\subsubsection{What did we implement? -- Include detailed descriptions}
+
+Your text here...
+
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\subsubsection{What didn't we implement? Why not?}
+
+Your text here...
+
+%==============================================================================
+\subsection{Advection}
+
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\subsubsection{Were there several possible implementations?}
+
+The main part of this piece is to implement an integration scheme. Thus there is different possibilities of implementations, such as Euler integration, second order integration or the Runge-Kutta method.
+
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\subsubsection{If there were several possibilities,
+what were the advantages/disadvantages of each? }
+
+Euler integration is really easy to implement and require just one call to the interpolation function, thus this method would be very fast. Yet, the results would certainly be more blurred than with another method of higher order integration.
+
+In contrast, the Runge-Kutta method will probably be much more accurate, but with 13 calls to the interpolation function, it will probably be much slower than the Euler integration.
+
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\subsubsection{Which implementation(s) did we do? Why?}
+
+We choose to implement both Euler and Runge-Kutta integration methods in order to have both quick and accurate results and be able to compare them.
+
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\subsubsection{What did we implement? -- Include detailed descriptions}
+
+Advection is about determine the movement of the gridpoints of a given grid $T$ depending on the velocity field. At each time step $dt$, we integrate the velocity field at each grid point, thus we have the points corresponding to the positions of the gridpoints $dt$ ago. Then we interpolate $T$ at these new points and update $T$  with the interpolated values.
+
+The only difference between the two integration methods rely on the way to compute the position of the gridpoints $dt$ ago where to interpolate $T$. 
+
+Indeed, if $X$, $Y$ and $Z$ are the grids containing the coordinates, and $V_x$, $V_y$, $V_z$ the grids containing the velocity fields, the new positions according to Euler integration would be :
+
+\[
+\left\{
+\begin{array}{r c l}
+X_1 &=& X - dt * V_x\\
+Y_1 &=& Y - dt * V_y\\
+Z_1 &=& Z - dt * V_z
+\end{array}
+\right.
+\]
+
+For the Runge-Kutta method, we first need to compute the coefficients $k_1$, $k_2$, $k_3$ and $k_4$ for each component : 
+\begin{description}
+\item[$k_1$] is the values of  $V_x$, $V_y$, $V_z$ at the coordinates $X$,$Y$,$Z$;
+\item[$k_2$] at the coordinates
+\[
+\left\{
+\begin{array}{r c l}
+X + dt/2 * k_1(x)\\
+Y + dt/2 * k_1(y)\\
+Z + dt/2 * k_1(z)
+\end{array}
+\right.
+\]
+
+\item[$k_3$] at the coordinates 
+\[
+\left\{
+\begin{array}{r c l}
+X + dt/2 * k_2(x)\\
+Y + dt/2 * k_2(y)\\
+Z + dt/2 * k_2(z)
+\end{array}
+\right.
+\]
+
+\item[$k_4$] at the coordinates 
+\[
+\left\{
+\begin{array}{r c l}
+X + dt * k_3(x)\\
+Y + dt * k_3(y)\\
+Z + dt * k_3(z)
+\end{array}
+\right.
+\]
+\end{description}
+
+Then, the new positions where to interpolate $T$ are given by :
+\[
+\left\{
+\begin{array}{r c l}
+X_1 \!  &=& \! X + \frac{dt}{6}\left(k_1(x) + 2k_2(x) + 2k_3(x) + k_4(x)\right) \\
+Y_1 \!  &=& \! Y + \frac{dt}{6}\left(k_1(y) + 2k_2(y) + 2k_3(y) + k_4(y)\right) \\
+Z_1 \!  &=& \! Z + \frac{dt}{6}\left(k_1(z) + 2k_2(z) + 2k_3(z) + k_4(z)\right) 
+\end{array}
+\right.
+\]
+
+Finally, the last step is the same for both Euler and Runge-Kutta methods : interpolate the grid $T$ at the points of coordinates $X_1$, $Y_1$, and $Z_1$, and update $T$ with these new values.
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\subsubsection{What didn't we implement? Why not?}
+
+Your text here...
+
+%==============================================================================
+\subsection{Piece number N...}
+
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\subsubsection{Were there several possible implementations?}
+
+Your text here...
+
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\subsubsection{If there were several possibilities,
+what were the advantages/disadvantages of each? }
+
+Your text here...
+
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\subsubsection{Which implementation(s) did we do? Why?}
+
+Your text here...
+
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\subsubsection{What did we implement? -- Include detailed descriptions}
+
+Your text here...
+
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\subsubsection{What didn't we implement? Why not?}
+
+Your text here...
+
+
+%###################################################################@@@@@######
+\section{Results}
+
+%==============================================================================
+\subsection{How did we measure success?}
+
+Your text here...
+
+%==============================================================================
+\subsection{What experiments did we execute?}
+
+Your text here...
+
+%==============================================================================
+\subsection{Provide quantitative results}
+
+Your text here...
+
+%==============================================================================
+\subsection{What do my results indicate?}
+
+Your text here...
+
+
+%###################################################################@@@@@######
+\section{Discussion}
+
+%==============================================================================
+\subsection{Overall, is the approach we took promising?}
+
+Your text here...
+
+%==============================================================================
+\subsection{What different approach or variant of this approach is better?}
+
+Your text here...
+
+%==============================================================================
+\subsection{What follow-up work should be done next?}
+
+Your text here...
+
+%==============================================================================
+\subsection{What did we learn by doing this project? }
+
+Your text here...
+
+
+%###################################################################@@@@@######
+\section{Conclusion}
+
+Your text here...
+
+
+%###################################################################@@@@@######
+\section*{Acknowledgements}
+
+Your text here...
+
+
+%###################################################################@@@@@######
+\bibliographystyle{eg-alpha}
+\bibliography{refs}
+
+\end{document}
