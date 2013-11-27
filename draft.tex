@@ -438,6 +438,13 @@ And then the vorticity confinement force is computed as :
 $$f_{conf} = \epsilon h (N \times \omega)$$
 Where $h$ is the spacing of the grid and $\epsilon$ is a positive parameter used to control the amout of confinement to add.
 
+\subsubsection{The method of projection}
+To compute the density and the velocity at each time step, we follow a processus :
+\begin{enumerate}
+\item Add forces to the velocity fields: buoyancy, temperature and vorticity confinement
+\item Advect both density and temerature grids, as well as the velocity fields
+\item Make the velocity field divergence free using the Poisson solver
+\end{enumerate}
 
 %\subsubsection{Were there several possible implementations?}
 
@@ -464,19 +471,24 @@ Where $h$ is the spacing of the grid and $\epsilon$ is a positive parameter used
 %Your text here...
 
 %==============================================================================
+\subsection{BCC implementation}
+We did not have time to implement the BCC part. Indeed, we were supposed to use some existing code to implement both Cartesian and BCC parts, but this code contained many errors. We thus spent a large amout of time trying to understand and fix these errors, without success. When we finally try to use it during the advection tests, we realize that the code for cubic interpolation was very slow because of memory leaks, we then decided to use the Matlab built-in function in order to move on.
 
+To implement the BCC part, the main steps would be the same than for the Cartesian grids. We would have to implement an interpolation function for BCC grids and then the advection and Poisson parts would follow the same process.
 
 \section{Results}
 
 %==============================================================================
 \subsection{How did we measure success?}
 
-Your text here...
+I think than despite the fact the BCC part was not implemented, we should talk about partial success. Indeed, we have been able to simulate smoke and to implement and understand the mathematical methods beyond every steps. We have become familiar with those methods and have a much better overview of computer graphics fluid simulation.
 
 %==============================================================================
 \subsection{What experiments did we execute?}
 
-Your text here...
+We try to compare different methods, for example, we have run two simulations on 2000 time steps, one with Euler integration, and the other one using the Runge-Kutta method. 
+
+We also have run the simulation with and without the vorticity confinement force, in order to have a better understanding of its effect on the smoke movement.
 
 %==============================================================================
 \subsection{Provide quantitative results}
