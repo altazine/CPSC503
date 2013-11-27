@@ -9,6 +9,8 @@
 \usepackage[english]{babel}
 % permits inclusion of PNG, JPG, and PDF files under pdflatex
 \usepackage{graphics}
+\usepackage{graphicx}
+\usepackage{caption}
 % other packages
 \usepackage{epsfig}
 \usepackage{newalg}
@@ -58,7 +60,16 @@ CPSC 503}
 
 \begin{document}
 \begin{keywords}
-Your text here...
+Your text here...\\
+Your text here...\\
+Your text here...\\
+Your text here...\\
+Your text here...\\
+Your text here...\\
+Your text here...\\
+Your text here...\\
+Your text here...\\
+Your text here...\\
 \end{keywords}
 
 
@@ -76,7 +87,7 @@ The modeling and simulation of smoke is challenging and allows us to apprehend v
 %++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 \subsubsection{Who would benefit?}
 
-computer graphics community... ???
+Smoke simulation could be use for special effects, or for games for example. More generally, this work is a contribution to the computer graphics community.
 
 %==============================================================================
 \subsection{Previous Work}
@@ -94,7 +105,7 @@ Finally, Alim \cite{alim:phd} introduced data processing techniques on BCC grids
 %++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 \subsubsection{When do previous approaches fail/succeed?}
 
-????
+The main previous approach use finite difference for the advection part, and this approach does not allow to use large time steps. Our approach consists in tracing the streamline of every gridpoint given the velocity fields, it is much more stable and thus this allows to use whatever time step we want.
 
 %==============================================================================
 \subsection{Approach}
@@ -102,11 +113,10 @@ Finally, Alim \cite{alim:phd} introduced data processing techniques on BCC grids
 %++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 \subsubsection{What approach did we try?}
 
-Our approach was based on five main steps for both Cartesian or BCC grids, implemented in Matlab. The first three steps concern solving the incompressible Euler equations of fluid flow to model smoke's velocity.  We then need to be able to interpolate the values of a grid at any given point different than a gridpoint. This is an essential step to implement advection then. We first thing that we could use the work of another student who had implemented both linear and cubic interpolation on both Cartesian and BCC grids. We will see later why we finally cannot use is work.
-
+Our approach was based on five main steps for both Cartesian or BCC grids, implemented in Matlab. The first three steps concern solving the incompressible Euler equations of fluid flow to model smoke's velocity.  We then need to be able to interpolate the values of a grid at any given point different than a gridpoint. This is an essential step to implement advection then.
 The second step would be to implement advection so that our smoke particules follows the velocity field they are exposed to. This velocity field is defined by our force model, which will be described later in this part.
 
-Finally, we need to make sure that the smoke's velocity is a divergence-free field to satisfy the incompressible Euler equations. We solve the Poisson equation with Neumann boudary condition using a projection method. 
+Finally, we need to make sure that the smoke's velocity is a divergence-free field to satisfy the incompressible Euler equations. We solve the Poisson equation with Neumann boudary condition to obtain an unique solution. 
 
 After soving the Euler equations of fluid flow, we can start to make a simulation : we need a grid, a source of smoke and forces to create a velocity field. At each time step, we will solve the Euler equations and update the velocity fields with the forces present.
 
@@ -116,15 +126,15 @@ The last part is rendering. We will use Matlab built-in function to render slice
 %++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 \subsubsection{Under what circumstances do we think it should work well?}
 
-cubic interpolation
-RK4/Euler integration for advection
-grid between 32 and 128 to limit computational time 
+We think that the simulation will work well for grids with spacing between $32$ and $128$, for bigger grids, the computational time will be too big.
+
+For the methods used, the best result should be obtained with cubic interpolation, Runge-Kutta advection and with vorticity confinement, given that these methods give the most accurate results. However, we will also implement other methods to be able to compare the results.
 
 %++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-\subsubsection{Why do we think it should work well under those circumstances?}
+%%\subsubsection{Why do we think it should work well under those circumstances?}
 
-cubic interpolation more accurate than linear
-RK4 more accurate but longer than Euler
+%cubic interpolation more accurate than linear
+%RK4 more accurate but longer than Euler
 
 
 %###################################################################@@@@@######
@@ -134,7 +144,9 @@ RK4 more accurate but longer than Euler
 \subsection{What pieces had to be implemented to execute my approach?}
 
 First, we needed to implement the resolution of Euler equation of the fluid flow. To do this, we first of all need to understand how to use the code already existing for cubic interpolation. Therefore, we need to test it before using it during the advection part.
+
 Then, we need to implement the advection of a grid given a velocity field, that is to say to implement a way to determine, for each gridpoint, where it was $dt$ ago. We need to implement an integration scheme and we could use Euler integration or the Runge-Kutta method for example.
+
 The last step in solving the fluid flow equations is to implement a Poisson solver. We will seek guidance from the work of Alim \cite{alim:ms} to solve the Poisson equation in 3D.
 
 Next, we need to implement a proper simulation, and thus we need to define a force model, as the one in the paper of Fedkiw et al. \cite{Fedkiw:2001}. We will define different parameters in order to run different simulation easily and quickly.
@@ -150,68 +162,92 @@ The last step of rendering will not need much implementing work since we will us
 
 %++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-The main part about interpolation was to understand the existing code and to test it. We were working with cubic interpolation, so, when the number of the sample size double, the error should be divided by $2^4 = 16$.
-We use a very simple test to check this property : we define a function using a product of sinus : $$f(x,y,z) = sin(2\pi m x) * sin(2\pi n y) * sin(2\pi p z)$$
-The parameters $m$, $n$ and $p$ could be changed to make different tests.
-We then generate a huge number $N$ of random points in the grid, compute the interpolation on these points and then evaluate the error by computing the vaue of $f$ in each of these $N$ points.
+In order to implement the advection, we need to be able to determine, for any scalar grid, the value that this grid would take at any point whose coordinates are contained in the grid. So we need to interpolate the values of the closest gridpoints to figure out the value of the grid at the concerned point. 
 
-The first test was carried out with grids of 32, 64, 128 points and so with spacing of $\cfrac{1}{31}$, $\cfrac{1}{63}$, $\cfrac{1}{127}$. The results were really unexpected and poor :
+There is various order interpolation : linear and cubic for example. With linear interpolation, the error on a grid of size $N \times N \times N$ should be twice the error on a grid of size $2N \times 2N \times 2N$. Cubic interpolation allows to increase this ratio up to 16, so as soon as the grid size increases, the interpolation error decreases very fast.
+
+For our use of these functions, the main difference will be that the linear interpolation will give a result much more blurred than the cubic interpolation, as we see on these pictures :
 \begin{center}
-\begin{tabular}{|c|c|c|c|}
-  \hline
-  spacing & error & ratio & time \\
-  \hline
-  $\cfrac{1}{31}$ & 0.1038 & 1.0117 &1.773\\[0.2cm] 
-  $\cfrac{1}{63}$ & 0.1026 & 1.5498 &\\[0.2cm]
-  $\cfrac{1}{127}$ & 0.0662 & 1.8807 &\\[0.2cm]
-  $\cfrac{1}{255}$ & 0.0352 &  &\\[0.2cm]
-  \hline
-\end{tabular}
+\begin{figure}[h!]
+\includegraphics[width=0.8\columnwidth]{25linear.jpg}
+\caption{Clown image interpolated 25 times with linear interpolation}
+\end{figure}
+\begin{figure}[h!]
+\includegraphics[width=0.8\columnwidth]{25cubic.jpg}
+\caption{Clown image interpolated 25 times with cubic interpolation}
+\end{figure}
 \end{center}
-The ratio is the one between a grid and the grid with the double number of points. It is expected to approach 16. We see clearly here that the function does not give good results. 
 
-We spent a very large amout of time going through the code and trying to understand what was wrong with the implementation of the cubic interpolation and did not really succeed in it. We finally figure out that the function was only working with ``even'' spacing :
-\begin{center}
-\begin{tabular}{|c|c|c|c|}
-  \hline
-  spacing & error & ratio & time\\
-  \hline
-  $\cfrac{1}{32}$ & 0.0199 & 30.753 &0\\[0.2cm] 
-  $\cfrac{1}{64}$ & 6.471e-4 & 19.966 &\\[0.2cm]
-  $\cfrac{1}{128}$ & 3.241e-5 & 16.965 &\\[0.2cm]
-  $\cfrac{1}{256}$ & 1.91e-6 & & \\[0.2cm]
-  \hline
-\end{tabular}
-\end{center}
-The ratios are approaching 16 much more clearly. We did not fine an explanation for these results, and decided to move on with grids with an ``even'' spacing.
-\subsubsection{Were there several possible implementations?}
+%The main part about interpolation was to understand the existing code and to test it. We were working with cubic interpolation, so, when the number of the sample size double, the error should be divided by $2^4 = 16$.
+%We use a very simple test to check this property : we define a function using a product of sinus : $$f(x,y,z) = sin(2\pi m x) * sin(2\pi n y) * sin(2\pi p z)$$
+%The parameters $m$, $n$ and $p$ could be changed to make different tests.
+%We then generate a huge number $N$ of random points in the grid, compute the interpolation on these points and then evaluate the error by computing the vaue of $f$ in each of these $N$ points.
 
-Your text here...
+%The first test was carried out with grids of 32, 64, 128 points and so with spacing of $\cfrac{1}{31}$, $\cfrac{1}{63}$, $\cfrac{1}{127}$. The results were really unexpected and poor :
+%\begin{center}
+%\begin{tabular}{|c|c|c|c|}
+%%  \hline
+%  spacing & error & ratio & time \\
+%  \hline
+%  $\cfrac{1}{31}$ & 0.1038 & 1.0117 &1.773\\[0.2cm] 
+%  $\cfrac{1}{63}$ & 0.1026 & 1.5498 &\\[0.2cm]
+%  $\cfrac{1}{127}$ & 0.0662 & 1.8807 &\\[0.2cm]
+%  $\cfrac{1}{255}$ & 0.0352 &  &\\[0.2cm]
+%  \hline
+%\end{tabular}
+%\end{center}
+%The ratio is the one between a grid and the grid with the double number of points. It is expected to approach 16. We see clearly here that the function does not give good results. 
+%
+%We spent a very large amout of time going through the code and trying to understand what was wrong with the implementation of the cubic interpolation and did not really succeed in it. We finally figure out that the function was only working with ``even'' spacing :
+%\begin{center}
+%\begin{tabular}{|c|c|c|c|}
+%  \hline
+%  spacing & error & ratio & time\\
+%  \hline
+%  $\cfrac{1}{32}$ & 0.0199 & 30.753 &0\\[0.2cm] 
+%  $\cfrac{1}{64}$ & 6.471e-4 & 19.966 &\\[0.2cm]
+%  $\cfrac{1}{128}$ & 3.241e-5 & 16.965 &\\[0.2cm]
+%  $\cfrac{1}{256}$ & 1.91e-6 & & \\[0.2cm]
+ % \hline
+%\end{tabular}
+%\end{center}
+%The ratios are approaching 16 much more clearly. We did not fine an explanation for these results, and decided to move on with grids with an ``even'' spacing.
+
+
+%\subsubsection{Were there several possible implementations?}
+
+%Your text here...
 
 %++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-\subsubsection{If there were several possibilities,
-what were the advantages/disadvantages of each? }
+%\subsubsection{If there were several possibilities,
+%what were the advantages/disadvantages of each? }
 
-Your text here...
-
-%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-\subsubsection{Which implementation(s) did we do? Why?}
-
-Your text here...
+%Your text here...
 
 %++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-\subsubsection{What did we implement? -- Include detailed descriptions}
+%\subsubsection{Which implementation(s) did we do? Why?}
 
-Your text here...
+%Your text here...
 
 %++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-\subsubsection{What didn't we implement? Why not?}
+%\subsubsection{What did we implement? -- Include detailed descriptions}
 
-Your text here...
+%Your text here...
+
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+%\subsubsection{What didn't we implement? Why not?}
+
+%Your text here...
 
 %==============================================================================
 \subsection{Advection}
-
+\begin{center}
+\begin{figure*}[ht]
+\includegraphics[width = \textwidth]{advect2.jpg}
+\caption{Advection at time steps 25, 50, 75 and 100}
+\label{advect}
+\end{figure*}
+\end{center}
 %++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 \subsubsection{Were there several possible implementations?}
 
@@ -233,7 +269,9 @@ We choose to implement both Euler and Runge-Kutta integration methods in order t
 %++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 \subsubsection{What did we implement? -- Include detailed descriptions}
 
-Advection is about determine the movement of the gridpoints of a given grid $T$ depending on the velocity field. At each time step $dt$, we integrate the velocity field at each grid point, thus we have the points corresponding to the positions of the gridpoints $dt$ ago. Then we interpolate $T$ at these new points and update $T$  with the interpolated values.
+Advection is about determine the movement of the gridpoints of a given grid $T$ depending on the velocity field. We want, for each gridpoint, to determine its streamline given the velocity field. 
+
+At each time step $dt$, we integrate the velocity field at each grid point, thus we have the points corresponding to the positions of the gridpoints $dt$ ago. Then we interpolate $T$ at these new points and update $T$  with the interpolated values.
 
 The only difference between the two integration methods rely on the way to compute the position of the gridpoints $dt$ ago where to interpolate $T$. 
 
@@ -298,42 +336,136 @@ Z_1 \!  &=& \! Z + \frac{dt}{6}\left(k_1(z) + 2k_2(z) + 2k_3(z) + k_4(z)\right)
 \]
 
 Finally, the last step is the same for both Euler and Runge-Kutta methods : interpolate the grid $T$ at the points of coordinates $X_1$, $Y_1$, and $Z_1$, and update $T$ with these new values.
-%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-\subsubsection{What didn't we implement? Why not?}
 
-Your text here...
+The pictures \ref{advect} is a example of the clown image advected with the Runge-Kutta integration, with a velocity field defined as
+\[
+\left\{
+\begin{array}{r c l}
+V_x \!  &=& \! Y \\
+V_y \!  &=& \! -X \\
+V_z \!  &=& \! 0 
+\end{array}
+\right.
+\]
+
+
+%At this point of the implementation, we run a test on an image with the cubic interpolation we had tested before. Then we realized this function kept switching the two dimensions $X$ and $Y$, and had a lost of memory leaks : after a few step, Matlab was crashing. We try to understand the cause of the problem and to fix the function and lost again a lot of time. We then decide to use the built-in Matlab function \verb+interp3+, which was giving correct results.
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+%\subsubsection{What didn't we implement? Why not?}
+
+%Your text here...
 
 %==============================================================================
-\subsection{Piece number N...}
+\subsection{Poisson solver}
+
+The last step to solve the incompressible Euler equations is to transform the velocity field $\mathbf{\omega}$ into a divergence-free velocity field $\mathbf{u}$ by solving the Poisson equation :
+$$\nabla^2 p = - \mathbf{\nabla} \cdot \mathbf{\omega}   $$
+And then, $\mathbf{u}$ is given by $$\mathbf{u}  = {\mathversion{bold}\omega} -  \nabla p$$ 
+We want to simulate smoke evolving in a box, we will thus use the Neumann boundary condition $$\mathbf{u} \cdot \mathbf{\hat{n}} = 0  $$
+As explain by Alim\cite{alim:ms}, this condition prevent smoke to move orthogonal to the walls.
+
 
 %++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 \subsubsection{Were there several possible implementations?}
 
-Your text here...
+With our domain as a grid, the Poisson problem is a system of linear equation. There are many methods to solve it \cite{ualim:ms,7}, some are direct and some other iterative.
+For example the conjugate gradient method is iterative and refine a solution at each iteration step until some convergence criterion is satisfy. On the other side, a direct method get an exact solution of the problem in one iteration.
+
+The conjugate-gradient method is practical because it works on every type of domains, though it is often quite expensive. But our domain is rectangular and simple, and thus we will use a rapid fast Fourier transform (FFT) solver.
 
 %++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-\subsubsection{If there were several possibilities,
-what were the advantages/disadvantages of each? }
+%\subsubsection{If there were several possibilities,
+%what were the advantages/disadvantages of each? }
 
-Your text here...
+%Your text here...
 
 %++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-\subsubsection{Which implementation(s) did we do? Why?}
+%\subsubsection{Which implementation(s) did we do? Why?}
 
-Your text here...
+%Your text here...
 
 %++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 \subsubsection{What did we implement? -- Include detailed descriptions}
 
-Your text here...
-
+We seek guidance from the work of Alim \cite{alim:ms} to implement the FFT method in 3D : We first compute the 3D discrete cosine transform $\mathbf{\hat{\omega}}$ of the velocity field $\mathbf{\omega}$ using an existing function.
+Then, we divide $\mathbf{\hat{\omega}}$ by the sum of the eigenvalues of the matrix describing the second-order central diffrence approximation te the Poisson equation. These eigenvalues are defined as : 
+\[
+\left\{
+\begin{array}{r c l}
+\lambda_x \!  &=& \! 2 - 2cos(\cfrac{\pi(j-1)}{M}) ~~ j \in 1..M\\
+\lambda_y \!  &=& \! 2 - 2cos(\cfrac{\pi(j-1)}{N}) ~~ j \in 1..N\\
+\lambda_z \!  &=& \! 2 - 2cos(\cfrac{\pi(j-1)}{P}) ~~ j \in 1..P
+\end{array}
+\right.
+\]
+Where $M$, $N$ and $P$ are the dimensions of $X$, $Y$ and $Z$.
+Finally, we compute the inverse cosine transform of $$ \cfrac{\hat{f}}{\lambda_x +\lambda_y +\lambda_z }$$
+The result is $p$, and we then deduce $\mathbf{u}$ easily from it.
 %++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-\subsubsection{What didn't we implement? Why not?}
+%\subsubsection{What didn't we implement? Why not?}
 
-Your text here...
+%Your text here...
 
 
 %###################################################################@@@@@######
+
+\subsection{Simulation}
+To simulate smoke, we need to define the meshgrids $X$, $Y$ and $Z$ for the coordinates, and two grids \verb+density+ and \verb+temp+. The first one, \verb+density+, represents the density of smoke in the grid, while  \verb+temp+ represents the temperature at each gridpoint.
+
+We create a source of smoke : a sphere at the bottom of the grid where the density is set to 100 and the temperature to 100 as well, these two grids are set to 0 everywhere else. We will update this source at every timestep in order to have a continuous flow of smoke.
+We then need a velocity field : initially there will be no velocity along the $X$ and $Y$ axis, and an inital value $V_0$ for the smoke's velocity along $Z$. 
+The velocity field will then be update at every time step according to the force model.
+
+\subsubsection{Force model}
+ Our force model relies on three forces, as explained in the work of Fedkiw et al. \cite{Fedkiw:2001} : the buoyancy, the temperature effect and vorticity confinement.
+
+The buoyancy force describes the natural tendance of smoke to rise : 
+$$ f_{buoy} = \alpha * density * \mathbf{z}$$
+
+The temperature effect depends on the difference of temperature between each gridpoint and the ambient temperature, which we have set at $T_{amb} = 25$ : 
+$$f_{temp} = \beta(temp-T_{amb})\mathbf{z}$$
+
+Finally, to make the result more realistic, we add a term of vorticity confinement, as explain in Alim and in Fedkiw \cite{alim:ms,Fedkiw:2001}.
+Vorticity is defined  as the curl of the velocity field and describes the rotational behaviour of the smoke. That is what cause the swirls and curls of the smoke.
+Vorticity confinement has been developed by Fedkiw et al. \cite{Fedkiw:2001}, it locates the area where small vorticity features should be added.
+The vorticity of a incompressible flow $\mathbf{u}$ is :
+$$\mathbf{\omega} = \nabla \times \mathbf{u}$$
+
+We then computed normalized vorticity location vectors $\mathbf{N}$, they point from lower to higher vorticity concentrations : 
+$$ \mathbf{N} = \cfrac{\mathbf{\mu}}{\Vert \mathbf{\mu} \Vert} ~~~~~~~ \mathbf{\mu}=\nabla \Vert \omega \Vert $$
+
+And then the vorticity confinement force is computed as :
+$$f_{conf} = \epsilon h (N \times \omega)$$
+Where $h$ is the spacing of the grid and $\epsilon$ is a positive parameter used to control the amout of confinement to add.
+
+
+%\subsubsection{Were there several possible implementations?}
+
+%Your text here...
+
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+%\subsubsection{If there were several possibilities,
+%what were the advantages/disadvantages of each? }
+
+%Your text here...
+
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+%\subsubsection{Which implementation(s) did we do? Why?}
+
+%Your text here...
+
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+%\subsubsection{What did we implement? -- Include detailed descriptions}
+
+
+%++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+%\subsubsection{What didn't we implement? Why not?}
+
+%Your text here...
+
+%==============================================================================
+
+
 \section{Results}
 
 %==============================================================================
