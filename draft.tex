@@ -275,7 +275,7 @@ At each time step $dt$, we integrate the velocity field at each grid point, thus
 
 The only difference between the two integration methods rely on the way to compute the position of the gridpoints $dt$ ago where to interpolate $T$. 
 
-Indeed, if $X$, $Y$ and $Z$ are the grids containing the coordinates, and $V_x$, $V_y$, $V_z$ the grids containing the velocity fields, the new positions according to Euler integration would be :
+Indeed, if $X$, $Y$ and $Z$ are the meshgrids containing the coordinates of the gridpoints, and $V_x$, $V_y$, $V_z$ the grids containing the velocity fields, the new positions according to Euler integration would be :
 
 \[
 \left\{
@@ -368,7 +368,7 @@ As explain by Alim\cite{alim:ms}, this condition prevent smoke to move orthogona
 %++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 \subsubsection{Were there several possible implementations?}
 
-With our domain as a grid, the Poisson problem is a system of linear equation. There are many methods to solve it \cite{ualim:ms,7}, some are direct and some other iterative.
+With our domain as a grid, the Poisson problem is a system of linear equation. There are many methods to solve it \cite{alim:ms,demmel}, some are direct and some other iterative.
 For example the conjugate gradient method is iterative and refine a solution at each iteration step until some convergence criterion is satisfy. On the other side, a direct method get an exact solution of the problem in one iteration.
 
 The conjugate-gradient method is practical because it works on every type of domains, though it is often quite expensive. But our domain is rectangular and simple, and thus we will use a rapid fast Fourier transform (FFT) solver.
@@ -474,31 +474,85 @@ To compute the density and the velocity at each time step, we follow a processus
 \subsection{BCC implementation}
 We did not have time to implement the BCC part. Indeed, we were supposed to use some existing code to implement both Cartesian and BCC parts, but this code contained many errors. We thus spent a large amout of time trying to understand and fix these errors, without success. When we finally try to use it during the advection tests, we realize that the code for cubic interpolation was very slow because of memory leaks, we then decided to use the Matlab built-in function in order to move on.
 
-To implement the BCC part, the main steps would be the same than for the Cartesian grids. We would have to implement an interpolation function for BCC grids and then the advection and Poisson parts would follow the same process.
+To implement the BCC grids part, the main steps would be the same than for the Cartesian grids. We would have to implement an interpolation function for BCC grids and then the advection and Poisson parts would follow the same process.
 
 \section{Results}
 
 %==============================================================================
 \subsection{How did we measure success?}
 
-I think than despite the fact the BCC part was not implemented, we should talk about partial success. Indeed, we have been able to simulate smoke and to implement and understand the mathematical methods beyond every steps. We have become familiar with those methods and have a much better overview of computer graphics fluid simulation.
+I think than despite the fact the BCC part was not implemented, we should talk about partial success. Indeed, we have been able to simulate smoke with good results, and to implement and understand the mathematical methods beyond every steps. 
+
+We have become familiar with those methods and have a much better overview of computer graphics fluid simulation.
 
 %==============================================================================
 \subsection{What experiments did we execute?}
 
 We try to compare different methods, for example, we have run two simulations on 2000 time steps, one with Euler integration, and the other one using the Runge-Kutta method. 
 
-We also have run the simulation with and without the vorticity confinement force, in order to have a better understanding of its effect on the smoke movement.
+We also have run the simulation with and without the vorticity confinement force, in order to have a better understanding of its effect on the smoke's movement.
 
+The simulations showed hereinafter have been executed on grids of size $129 \times 129 \times 385$ with these parameters :
+\[
+\begin{array}{r c l}
+\alpha \!  &=& \! 0.0001\\
+\beta \!  &=& \! 0.0000001\\
+V_0 \!  &=& \! 0.00001 \\
+T_{amb} &=& 25 \\
+\epsilon &=& 0.1 \\
+dt &=& -0.2 \\
+\end{array}
+\]
+
+The parameters $\alpha$ and $\beta$ have been chosen in order to give the buoyancy and temperature force an effect visible but not too strong, to have the more realistic result possible. The time step $dt$ have been chosen small enough so the flow of smoke does not broke and its rise is smooth.
+
+In the three simulations, the pictures showed after are 2D slices of the density grid. At each time step, We have render the middle slice of the densoty grid in order to visualize the place with the most smoke.
 %==============================================================================
 \subsection{Provide quantitative results}
 
-Your text here...
+\begin{figure*}
+  \begin{center}
+    \begin{tabular}{ccccccc}
+      \includegraphics[width=0.12\linewidth]{Eulernovort1000cubic/0.jpg} & \includegraphics[width=0.12\linewidth]{Eulernovort1000cubic/6.jpg} & \includegraphics[width=0.12\linewidth]{Eulernovort1000cubic/10.jpg} & 
+      \includegraphics[width=0.12\linewidth]{Eulernovort1000cubic/25.jpg} & \includegraphics[width=0.12\linewidth]{Eulernovort1000cubic/40.jpg} & \includegraphics[width=0.12\linewidth]{Eulernovort1000cubic/50.jpg} & 
+      \includegraphics[width=0.12\linewidth]{Eulernovort1000cubic/65.jpg} \\
 
+      $t = 0$ & $t = 90$ & $t = 150$ & $t = 375$ & $t = 600$  & $t = 750$ & $t = 975$ \\[0.5cm]
+      \includegraphics[width=0.12\linewidth]{Eulervort2000cubic/0.jpg} &  \includegraphics[width=0.12\linewidth]{Eulervort2000cubic/6.jpg}&  \includegraphics[width=0.12\linewidth]{Eulervort2000cubic/10.jpg}
+      &  \includegraphics[width=0.12\linewidth]{Eulervort2000cubic/25.jpg} &  \includegraphics[width=0.12\linewidth]{Eulervort2000cubic/40.jpg} &  \includegraphics[width=0.12\linewidth]{Eulervort2000cubic/50.jpg}
+      &  \includegraphics[width=0.12\linewidth]{Eulervort2000cubic/65.jpg} \\
+      $t = 0$ & $t = 90$ & $t = 150$ & $t = 375$ & $t = 600$  & $t = 750$ & $t = 975$ \\ 
+    \end{tabular}
+    \caption{Smoke simulation at different time steps. The upper pictures are without vorticity and the lower with.}
+    \label{vorttest}
+  \end{center}
+\end{figure*}
+
+\begin{figure*}
+  \begin{center}
+    \begin{tabular}{ccccccc}
+      \includegraphics[width=0.12\linewidth]{Eulervort2000cubic/0.jpg} &  \includegraphics[width=0.12\linewidth]{Eulervort2000cubic/6.jpg}&  \includegraphics[width=0.12\linewidth]{Eulervort2000cubic/10.jpg}
+      &  \includegraphics[width=0.12\linewidth]{Eulervort2000cubic/50.jpg} &  \includegraphics[width=0.12\linewidth]{Eulervort2000cubic/80.jpg} &  \includegraphics[width=0.12\linewidth]{Eulervort2000cubic/110.jpg}
+      &  \includegraphics[width=0.12\linewidth]{Eulervort2000cubic/130.jpg} \\
+      $t = 0$ & $t = 90$ & $t = 150$ & $t = 750$ & $t = 1200$  & $t = 1650$ & $t = 1950$ \\[0.5cm] 
+      \includegraphics[width=0.12\linewidth]{RKI2000linearvort/0.png} & \includegraphics[width=0.12\linewidth]{RKI2000linearvort/6.png} & \includegraphics[width=0.12\linewidth]{RKI2000linearvort/10.png} & 
+      \includegraphics[width=0.12\linewidth]{RKI2000linearvort/50.png} & \includegraphics[width=0.12\linewidth]{RKI2000linearvort/80.png} & \includegraphics[width=0.12\linewidth]{RKI2000linearvort/110.png} & 
+      \includegraphics[width=0.12\linewidth]{RKI2000linearvort/130.png} \\
+
+      $t = 0$ & $t = 90$ & $t = 150$ & $t = 750$ & $t = 1200$  & $t = 1650$ & $t = 1950$ \\
+    \end{tabular}
+    \caption{Smoke simulation at different time steps. The upper pictures are with Euler integration (14s/frame) and the lower with Runge-Kutta (45s/frame), both with vorticity, using cubic interpolation.}
+    \label{inttest}
+  \end{center}
+\end{figure*}
 %==============================================================================
 \subsection{What do my results indicate?}
 
-Your text here...
+The figure \ref{vorttest} shows quite clearly the effect of the vorticity confinement method on the result of the simulation. There are much more little swirls and curls along the smoke flow, and it rise slower.
+
+The figure \ref{inttest} highlights the effect of the integration method use during advection. The results with Runge Kutta integration are more realistic, we see more smoke at the top of the box : there is less dissipation of the smoke. However, the comuptation time difference is not neglectable : the Runge-Kutta advection, with twelve more calls to the interpolation function, takes three times more time that the Euler one.
+
+This is where the BCC grids should be interesting : we expected the same amelioration in results from Cartesian Runge-Kutta to BCC than from Cartesian Euler to Cartesian Runge-Kutta, but the BCC part should not increase the computational time that much. This is the main interrest of BCC grids : better accuracy within the same computational time limits.
 
 
 %###################################################################@@@@@######
@@ -507,34 +561,42 @@ Your text here...
 %==============================================================================
 \subsection{Overall, is the approach we took promising?}
 
-Your text here...
+Our approach is promising since we obtained really realistic results on Cartesian grids using a simple force model and vorticity confinement. The computation time could seems big but we have to keep in mind that our simulations have been runned on high definition grids, which explains that time.
 
 %==============================================================================
 \subsection{What different approach or variant of this approach is better?}
 
-Your text here...
+The approach using BCC grids should give even better results and reduce the computational time to obtain the same kind of results we get with Runge-Kutta advection and vorticity confinement ;ethod.
 
 %==============================================================================
 \subsection{What follow-up work should be done next?}
 
-Your text here...
+One of the follow-up work should obviously be the implementation on BCC grids, which would follow the same steps that the approach we have implemented.
+
+Another follow-up work could be to try to render the simulation in 3D to have a better view of the curls and swirls of the smoke.
 
 %==============================================================================
 \subsection{What did we learn by doing this project? }
 
-Your text here...
+During this project, we have seen ways to use different mathematical methods already known, like the Runge-Kutta intergration for instance, in an applied simulation.
+
+We also have learn other methods such as the Poisson solver.
+
+We also have learn the main steps for fluid simulation in computer graphics, and have a better view of this domain.
 
 
 %###################################################################@@@@@######
 \section{Conclusion}
 
-Your text here...
+In conclusion, this project is not a complete success but it still bring us a lot of knowledge about fluid simulation and good results of smoke simulation. Trying to render our results in 3D should be give a very good result, and implementing the same process on BCC grids would improve the quality of our render in the same computational time limits.
 
 
 %###################################################################@@@@@######
 \section*{Acknowledgements}
 
-Your text here...
+I would like to thank my supervisor Usman Alim for his patience and his guidance during all steps of this project.
+
+I would also like to thanks the students in the computer graphics lab for their support and the friendly atmosphere of the lab.
 
 
 %###################################################################@@@@@######
